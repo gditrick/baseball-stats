@@ -17,7 +17,11 @@ module BaseballStats
     def triple_crown
       pp "Triple Crown"
       invoke :app, ['init']
-      pp Player.all
+      League.all.each do |l|
+        pp "#{l.name} Teams:"
+        pp l.teams
+        puts
+      end
     end
   end
 end

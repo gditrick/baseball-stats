@@ -12,10 +12,5 @@ module BaseballStats
     def migrate(db, path)
       Sequel::Migrator.apply(db, path)
     end
-
-    desc 'seed', 'Seeds a fresh db'
-    def seed(file)
-      load(file) if File.exists?(file)
-    end
   end
 end
