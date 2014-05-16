@@ -1,0 +1,15 @@
+development: &DEV
+  in:
+    path: data/in
+    ext: .csv
+    archive: true
+    archive_path: data/in/archive
+  out:
+    path: data/out
+    ext: .csv
+    archive: true
+    archive_path: data/out/archive
+
+test: *DEV
+
+production: *DEV
