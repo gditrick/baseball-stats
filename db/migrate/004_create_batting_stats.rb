@@ -12,6 +12,7 @@ Sequel.migration do
       Fixnum      :hits
       Fixnum      :doubles
       Fixnum      :triples
+      Fixnum      :home_runs
       Fixnum      :rbi
       Fixnum      :stolen_bases
       Fixnum      :caught_stealing
@@ -19,7 +20,7 @@ Sequel.migration do
       DateTime    :created_at
       DateTime    :updated_at
 
-      index [:player_id, :team_id, :year], unique: true
+      index [:player_id, :team_id, :year], unique: false
     end
   end
 

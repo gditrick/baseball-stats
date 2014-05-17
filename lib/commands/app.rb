@@ -1,4 +1,5 @@
 require_relative 'config'
+require_relative 'data'
 require_relative 'db'
 
 module BaseballStats
@@ -14,7 +15,7 @@ module BaseballStats
       invoke BaseballStats::Db, [:migrate, app.db, app.config.schema_scripts_path]
       Dir.glob(File.join(File.expand_path('../../models',__FILE__), '*.rb')).each {|f| load(f) }
       invoke BaseballStats::Db, [:seed, app.config.db_seed_file]
-#      invoke BaseballStats::Data, [:load_data, app.config.data.in.path]
+      invoke BaseballStats::Data, [:load_new, app.config.data.in]
       app
     end
   end
