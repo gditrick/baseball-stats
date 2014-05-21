@@ -4,11 +4,12 @@ require_relative 'db'
 
 module BaseballStats
   class App < Thor
-    register(Config, :config, 'config SUBCOMMAND', 'Application configuration commands')
-    register(Db, :db, 'db SUBCOMMAND', 'Application database commands')
+#    register(Config, :config, 'config SUBCOMMAND', 'Application configuration commands')
+#    register(Db, :db, 'db SUBCOMMAND', 'Application database commands')
 
     desc 'init', 'Initializes the application'
     def init
+      @logger = 'test'
       app = Application.new
       app.config = invoke BaseballStats::Config, :load_config
       app.db = invoke BaseballStats::Db, [:connect, app.config.database]

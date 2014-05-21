@@ -64,14 +64,18 @@ module BaseballStats
           t = RemoteTable.new file
           t.rows.each do |r|
             attrs = map_row(BATTING_MAPPINGS, r)
-            if (p = Player[attrs[:player_id]])
-              bs = BattingStat.new(attrs)
-              p.add_batting_stat(bs)
-            else
-              headers << HDR_ERROR_MSG unless headers.include?(HDR_ERROR_MSG)
-              r[HDR_ERROR_MSG] ||= []
-              r[HDR_ERROR_MSG] |= ['No matching player']
-              bad_records << r if attrs[:id].blank?
+            begin
+              if (p = Player[attrs[:player_id]])
+                bs = BattingStat.new(attrs)
+                p.add_batting_stat(bs)
+              else
+                headers << HDR_ERROR_MSG unless headers.include?(HDR_ERROR_MSG)
+                r[HDR_ERROR_MSG] ||= []
+                r[HDR_ERROR_MSG] |= ['No matching player']
+                bad_records << r
+              end
+            rescue
+              pp attrs
             end
           end
           dump_bad_records(file, headers, bad_records) unless bad_records.empty?
