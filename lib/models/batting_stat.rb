@@ -7,6 +7,7 @@ class BattingStat < Sequel::Model
 
   dataset_module do
     attr_accessor :calculated_stats
+    attr_reader :schema
 
     def average
       calculate_totals
@@ -23,56 +24,55 @@ class BattingStat < Sequel::Model
     end
     def total_at_bats
       calculate_totals
-      calculated_stats[:at_bats]
+      @calculated_stats[:at_bats]
     end
     def total_caught_stealing
       calculate_totals
-      calculated_stats[:caught_stealing]
+      @calculated_stats[:caught_stealing]
     end
     def total_stolen_bases
       calculate_totals
-      calculated_stats[:stolen_bases]
+      @calculated_stats[:stolen_bases]
     end
     def total_doubles
       calculate_totals
-      calculated_stats[:doubles]
+      @calculated_stats[:doubles]
     end
     def total_games
       calculate_totals
-      calculated_stats[:games]
+      @calculated_stats[:games]
     end
     def total_hits
       calculate_totals
-      calculated_stats[:hits]
+      @calculated_stats[:hits]
     end
     def total_home_runs
       calculate_totals
-      calculated_stats[:home_runs]
+      @calculated_stats[:home_runs]
     end
     def total_rbi
       calculate_totals
-      calculated_stats[:rbi]
+      @calculated_stats[:rbi]
     end
     def total_runs
       calculate_totals
-      calculated_stats[:runs]
+      @calculated_stats[:runs]
     end
     def total_triples
       calculate_totals
-      calculated_stats[:triples]
+      @calculated_stats[:triples]
     end
 
     private
 
     def calculate_totals
-      @calculated_stats ||= self.inject({}) do |m,o|
-        o.values.inject(m) do |a,(k,v)|
-          if v.is_a?(Fixnum)
-            a[k] ||= 0
-            a[k] += v unless v.nil?
-          end
-          m
+      @schema ||= self.db.schema(BattingStat.table_name).inject({}){|r,s| r.merge!(s[0] => s[1])}
+      values = self.map(&:values)
+      @calculated_stats ||= @schema.inject({}) do |m,(id, attrs)|
+        if attrs[:type] == :integer
+          m[id] = values.inject(0){|a,val| a += val[id].nil? ? 0 : val[id] }
         end
+        m
       end
     end
   end

@@ -2,11 +2,12 @@ require_relative 'app'
 
 module BaseballStats
   class Batting < Thor
-    desc 'avg OPTIONS', 'Batting avg of league, team or player'
+    desc 'avg OPTIONS', 'Batting sorted by avg of league, team or player'
     method_option :year, default: Time.now.year
     method_option :league, aliases: '-l'
     method_option :team, aliases: '-t'
     method_option :player, aliases: '-p'
+    method_option :restrict, default: 400, type: :numeric
     def avg
       BaseballStats::App.new.invoke(:init)
         
@@ -17,7 +18,26 @@ module BaseballStats
       stats = stats.for_team(options[:team]) if options[:team]
       stats = stats.for_player(options[:player]) if options[:player]
 
-      puts BattingStatFormatter.new(:average, object, stats).out
+      puts BattingStatFormatter.new(:average, object, stats, options[:year], options[:restrict]).out
+    end
+
+    desc 'slug OPTIONS', 'Batting sorted by slugging of league, team or player'
+    method_option :year, default: Time.now.year
+    method_option :league, aliases: '-l'
+    method_option :team, aliases: '-t'
+    method_option :player, aliases: '-p'
+    method_option :restrict, default: 400, type: :numeric
+    def slug
+      BaseballStats::App.new.invoke(:init)
+        
+      object = report_object
+
+      stats = BattingStat.for_year(options[:year]) if options[:year]
+      stats = stats.for_league(options[:league]) if options[:league]
+      stats = stats.for_team(options[:team]) if options[:team]
+      stats = stats.for_player(options[:player]) if options[:player]
+
+      puts BattingStatFormatter.new(:slugging, object, stats, options[:year], options[:restrict]).out
     end
 
     desc 'triple-crown <year>', 'Triple crown winner for <year> and <league>'
