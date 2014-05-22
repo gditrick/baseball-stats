@@ -80,5 +80,3 @@ module BaseballStats
     end
   end
 end
-
-
