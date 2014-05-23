@@ -96,4 +96,17 @@ class BattingStat < Sequel::Model
   def_dataset_method(:default_order) do
     order(:year, :league_id, :team_id, :player_id)
   end
+
+  def average
+     (hits.to_f / at_bats.to_f).round(3) unless at_bats.nil? or at_bats == 0
+  end
+
+  def slugging
+    ab = at_bats.nil? ? 0 : at_bats
+    h  = hits.nil? ? 0 : hits
+    d  = doubles.nil? ? 0 : doubles
+    t  = triples.nil? ? 0 : triples
+    hr = home_runs.nil? ? 0 : home_runs
+    (((h - d - t - hr) + (2 * d + 3 * t + 4 * hr)).to_f / ab.to_f).round(3) unless ab == 0
+  end
 end

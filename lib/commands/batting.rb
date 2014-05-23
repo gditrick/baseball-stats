@@ -10,14 +10,12 @@ module BaseballStats
     def avg
       BaseballStats::App.new.invoke(:init)
         
-      object = report_object
-
       stats = BattingStat.for_year(options[:year]) if options[:year]
       stats = stats.for_league(options[:league]) if options[:league]
       stats = stats.for_team(options[:team]) if options[:team]
       stats = stats.for_player(options[:player]) if options[:player]
 
-      puts BattingStatFormatter.new(:average, object, stats, options[:year], options[:restrict]).out
+      puts BattingStatFormatter.new(:average, report_object, stats, options[:year], options[:restrict]).out
     end
 
     desc 'slug OPTIONS', 'Batting sorted by slugging of league, team or player'
@@ -28,14 +26,12 @@ module BaseballStats
     def slug
       BaseballStats::App.new.invoke(:init)
         
-      object = report_object
-
       stats = BattingStat.for_year(options[:year]) if options[:year]
       stats = stats.for_league(options[:league]) if options[:league]
       stats = stats.for_team(options[:team]) if options[:team]
       stats = stats.for_player(options[:player]) if options[:player]
 
-      puts BattingStatFormatter.new(:slugging, object, stats, options[:year], options[:restrict]).out
+      puts BattingStatFormatter.new(:slugging, report_object, stats, options[:year], options[:restrict]).out
     end
 
     desc 'player PLAYER OPTIONS', 'Batting stats for player'
@@ -55,21 +51,20 @@ module BaseballStats
     end
 
     desc 'triple-crown <year>', 'Triple crown winner for <year> for <league>'
-    method_option :year, default: Time.now.year, aliases: '-y'
+    method_option :year, default: Time.now.year - 1, aliases: '-y', required: true
     method_option :league, aliases: '-l'
     method_option :team, aliases: '-t'
     method_option :restrict, default: 400, type: :numeric
-    method_option :expand, default: false, type: :boolean
+    method_option :expand, default: false, type: :boolean, aliases: '-e'
+    method_option :top, default: 3, type: :numeric, aliases: '-T'
     def triple_crown
       BaseballStats::App.new.invoke(:init)
         
-      object = report_object
-
-      stats = BattingStat.for_year(options[:year]) if options[:year]
+      stats = BattingStat.for_year(options[:year])
       stats = stats.for_league(options[:league]) if options[:league]
       stats = stats.for_team(options[:team]) if options[:team]
 
-      puts TripleCrownFormatter.new(object, stats, options).out
+      puts TripleCrownFormatter.new(report_object, stats, options).out
     end
 
     private

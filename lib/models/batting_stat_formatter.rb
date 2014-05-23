@@ -9,12 +9,13 @@ class BattingStatFormatter
   attr_reader :out
   attr_accessor :restrict
 
-  def initialize(order, object, stats, year, restrict=nil)
+  def initialize(order, object, stats, options)
     @order    = order
     @object   = object
     @stats    = stats
-    @year     = year
-    @restrict = restrict
+    @year     = options[:year]
+    @restrict = options[:restrict] || 0
+    @indent   = options[:indent] || 0
     @out      = ""
 
     case @object
@@ -63,7 +64,7 @@ class BattingStatFormatter
         player_header(@object, @stats)
         years = @stats.map(&:year).uniq.sort
         @out << "\n"
-        @out << sprintf("%s%-4s %-4s" + STATS_HEADER_FORMAT, TAB,
+        @out << sprintf("%s%-4s %-4s" + STATS_HEADER_FORMAT, TAB * @indent,
                         'Year',
                         'Team',
                         'G',
@@ -81,24 +82,22 @@ class BattingStatFormatter
         years.each do |year|
           year_stats = @stats.dup.where(year: year)
           year_stats.calculated_stats=nil
-          teams = year_stats.map(&:team).uniq.sort_by(&:id)
-          teams_stats = teams.map{|a| stats = year_stats.dup.where(team: a); stats.calculated_stats=nil; [a, stats]}
-          teams_stats.each do |player_team_stat|
-            average  = player_team_stat[1].average.nil? ? "NaN" : sprintf("%.3f",player_team_stat[1].average).gsub(/^0+/, '')
-            slugging = player_team_stat[1].slugging.nil? ? "NaN" : sprintf("%.3f",player_team_stat[1].slugging).gsub(/^0+/, '')
-            @out << sprintf("%s%-4s %-4s" + STATS_LINE_FORMAT, TAB,
+          year_stats.sort_by(&:team_id).each do |stat|
+            average  = stat.average.nil? ? "NaN" : sprintf("%.3f", stat.average).gsub(/^0+/, '')
+            slugging = stat.slugging.nil? ? "NaN" : sprintf("%.3f", stat.slugging).gsub(/^0+/, '')
+            @out << sprintf("%s%-4s %-4s" + STATS_LINE_FORMAT, TAB * @indent,
                         year,
-                        player_team_stat[0].id,
-                        player_team_stat[1].total_games,
-                        player_team_stat[1].total_at_bats,
-                        player_team_stat[1].total_runs,
-                        player_team_stat[1].total_hits,
-                        player_team_stat[1].total_doubles,
-                        player_team_stat[1].total_triples,
-                        player_team_stat[1].total_home_runs,
-                        player_team_stat[1].total_rbi,
-                        player_team_stat[1].total_stolen_bases,
-                        player_team_stat[1].total_caught_stealing,
+                        stat.team.id,
+                        stat.games,
+                        stat.at_bats,
+                        stat.runs,
+                        stat.hits,
+                        stat.doubles,
+                        stat.triples,
+                        stat.home_runs,
+                        stat.rbi,
+                        stat.stolen_bases,
+                        stat.caught_stealing,
                         average,
                         slugging)
           end
@@ -143,10 +142,11 @@ class BattingStatFormatter
   private
 
   def player_header(player, stats, indent=0)
+    indent += @indent
     average  = stats.average.nil? ? "NaN" : sprintf("%.3f",stats.average).gsub(/^0+/, '')
     slugging = stats.slugging.nil? ? "NaN" : sprintf("%.3f",stats.slugging).gsub(/^0+/, '')
-    @out << sprintf("%s %s\n", player.first_name, player.last_name) 
-    @out << sprintf("Birth Year: %s\n", player.birth_year) 
+    @out << sprintf("%s%s %s\n", TAB * indent, player.first_name, player.last_name) 
+    @out << sprintf("%sBirth Year: %s\n", TAB * indent, player.birth_year) 
     if @year.nil?
       @out << "\n"
       @out << sprintf("%sCareer Stats\n", TAB * (indent + 1))
@@ -189,6 +189,7 @@ class BattingStatFormatter
 
 
   def league_header(league, stats, indent=0)
+    indent += @indent
     average  = stats.average.nil? ? "NaN" : sprintf("%.3f",stats.average).gsub(/^0+/, '')
     slugging = stats.slugging.nil? ? "NaN" : sprintf("%.3f",stats.slugging).gsub(/^0+/, '')
     if indent == 0
@@ -200,6 +201,7 @@ class BattingStatFormatter
   end
 
   def team_header(team, stats, indent=0)
+    indent += @indent
     average  = stats.average.nil? ? "NaN" : sprintf("%.3f",stats.average).gsub(/^0+/, '')
     slugging = stats.slugging.nil? ? "NaN" : sprintf("%.3f",stats.slugging).gsub(/^0+/, '')
     if indent == 0
@@ -211,6 +213,7 @@ class BattingStatFormatter
   end
 
   def player_list_header(indent=0)
+    indent += @indent
     @out << sprintf(PLAYER_HEADER_FORMAT, TAB * (indent + 1),
                     'Name',
                     'G',
@@ -228,6 +231,7 @@ class BattingStatFormatter
   end
 
   def player_list_detail(player, stats, indent=0)
+    indent += @indent
     average  = stats.average.nil? ? "NaN" : sprintf("%.3f",stats.average).gsub(/^0+/, '')
     slugging = stats.slugging.nil? ? "NaN" : sprintf("%.3f",stats.slugging).gsub(/^0+/, '')
     @out << sprintf(PLAYER_LINE_FORMAT, TAB * (indent + 1),
