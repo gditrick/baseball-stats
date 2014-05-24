@@ -1,14 +1,15 @@
 Sequel.migration do 
   up do
     create_table :teams do
-      primary_key :id, type: String, auto_increment: false
+      String      :team_id
       foreign_key :league_id, :leagues, type: String, null: false
       String      :name
 
       DateTime    :created_at
       DateTime    :updated_at
 
-      index       :name, unique: true
+      primary_key [:team_id, :league_id], name: :teams_pk
+      index       :name, unique: false
     end
   end
 

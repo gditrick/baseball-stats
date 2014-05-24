@@ -15,7 +15,7 @@ module BaseballStats
       stats = stats.for_team(options[:team]) if options[:team]
       stats = stats.for_player(options[:player]) if options[:player]
 
-      puts BattingStatFormatter.new(:average, report_object, stats, options[:year], options[:restrict]).out
+      puts BattingStatFormatter.new(:average, report_object, stats, options).out
     end
 
     desc 'slug OPTIONS', 'Batting sorted by slugging of league, team or player'
@@ -31,7 +31,7 @@ module BaseballStats
       stats = stats.for_team(options[:team]) if options[:team]
       stats = stats.for_player(options[:player]) if options[:player]
 
-      puts BattingStatFormatter.new(:slugging, report_object, stats, options[:year], options[:restrict]).out
+      puts BattingStatFormatter.new(:slugging, report_object, stats, options).out
     end
 
     desc 'player PLAYER OPTIONS', 'Batting stats for player'

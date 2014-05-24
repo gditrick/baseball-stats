@@ -82,7 +82,7 @@ class TripleCrownFormatter
         if @expand
           @out << "\n"
           leaders(hr_stats, rbi_stats, avg_stats)
-          League.all.each do |league|
+          League.order(:id).each do |league|
             stats = @stats.dup.where(league: league)
             stats.calculated_stats=nil
             

@@ -2,8 +2,8 @@ class BattingStatFormatter
   TAB="\t"
   STATS_HEADER_FORMAT="%4s %5s %4s %4s %3s %3s %3s %4s %4s %3s %5s %5s\n"
   STATS_LINE_FORMAT  ="%4d %5d %4d %4d %3d %3d %3d %4d %4d %3d %5s %5s\n"
-  PLAYER_HEADER_FORMAT="%-30s " + STATS_HEADER_FORMAT
-  PLAYER_LINE_FORMAT=  "%-30s " + STATS_LINE_FORMAT
+  PLAYER_HEADER_FORMAT="%-24s " + STATS_HEADER_FORMAT
+  PLAYER_LINE_FORMAT=  "%-24s " + STATS_LINE_FORMAT
 
   attr_writer :order, :object, :stats
   attr_reader :out
@@ -18,30 +18,19 @@ class BattingStatFormatter
     @indent   = options[:indent] || 0
     @out      = ""
 
+
     case @object
       when League
         league_header(@object, @stats)
+        @out << "\n"
 
         team_stats = @object.teams.map{|a| stats = @stats.dup.where(team: a); stats.calculated_stats=nil; [a, stats]}
         team_stats.reject!{|a| a[1].empty?}
         team_stats.sort!{|a,b| b[1].send(@order) <=> a[1].send(@order)}
 
         team_stats.each do |team_stat|
-          @out << "\n"
-          team_header(team_stat[0], team_stat[1], 1)
-          players = team_stat[1].map(&:player).uniq
-          player_stats = players.map{|a| stats = team_stat[1].dup.where(player: a); stats.calculated_stats=nil; [a, stats]}
-          player_stats.reject!{|a| a[1].empty? or a[1].total_at_bats < (@restrict.nil? ? 0 : @restrict) }
-          player_stats.sort! do |a,b|
-            a = a[1].send(@order).nil? ? -1.0: a[1].send(@order)
-            b = b[1].send(@order).nil? ? -1.0: b[1].send(@order)
-            b <=> a
-          end
-          @out << "\n"
-          player_list_header(2)
-          player_stats.each do |player_stat|
-            player_list_detail(player_stat[0], player_stat[1], 2)
-          end
+          @out << BattingStatFormatter.new(@order, team_stat[0], team_stat[1], options.merge(indent: @indent + 1)).out
+          @out << "\n\n"
         end
 
       when Team
@@ -55,9 +44,9 @@ class BattingStatFormatter
           b <=> a
         end
         @out << "\n"
-        player_list_header(2)
+        player_list_header(1)
         player_stats.each do |player_stat|
-          player_list_detail(player_stat[0], player_stat[1], 2)
+          player_list_detail(player_stat[0], player_stat[1], 1)
         end
 
       when Player
@@ -105,35 +94,16 @@ class BattingStatFormatter
 
       when BattingStat
         mlb_header(@stats)
+        @out << "\n"
+          
         League.order(:id).each do |league|
           league_stats = @stats.dup.where(league: league)
           league_stats.calculated_stats=nil
           
-          @out << "\n"
-
-          league_header(league, league_stats, 1)
-
-          team_stats = league.teams.map{|a| stats = league_stats.dup.where(team: a); stats.calculated_stats=nil; [a, stats]}
-          team_stats.reject!{|a| a[1].empty?}
-          team_stats.sort!{|a,b| b[1].send(@order) <=> a[1].send(@order)}
-          team_stats.each do |team_stat|
-            @out << "\n"
-            team_header(team_stat[0], team_stat[1], 2)
-            players = team_stat[1].map(&:player).uniq
-            player_stats = players.map{|a| stats = team_stat[1].dup.where(player: a); stats.calculated_stats=nil; [a, stats]}
-            player_stats.reject!{|a| a[1].empty? or a[1].total_at_bats < (@restrict.nil? ? 0 : @restrict) }
-            player_stats.sort! do |a,b|
-              a = a[1].send(@order).nil? ? -1.0: a[1].send(@order)
-              b = b[1].send(@order).nil? ? -1.0: b[1].send(@order)
-              b <=> a
-            end
-            @out << "\n"
-            player_list_header(3)
-            player_stats.each do |player_stat|
-              player_list_detail(player_stat[0], player_stat[1], 3)
-            end
-          end
+          @out << BattingStatFormatter.new(@order, league, league_stats, options.merge(indent: @indent + 1)).out
+          @out << "\n\n\n"
         end
+
       else
         raise "Unknown Batting Stat type to format" 
     end
@@ -197,7 +167,7 @@ class BattingStatFormatter
     else
       @out << sprintf("%s%s Batting\n", TAB * indent, league.name) 
     end
-    @out << sprintf("%sTotals   Teams: %d  Avg: %s  Slug: %s\n", TAB * (indent + 1), league.teams.count, average, slugging) 
+    @out << sprintf("%sTotals   Teams: %d  Avg: %s  Slug: %s\n", TAB * (indent + 1), stats.map(&:team).uniq.count, average, slugging) 
   end
 
   def team_header(team, stats, indent=0)
@@ -214,7 +184,7 @@ class BattingStatFormatter
 
   def player_list_header(indent=0)
     indent += @indent
-    @out << sprintf(PLAYER_HEADER_FORMAT, TAB * (indent + 1),
+    @out << sprintf("%s" + PLAYER_HEADER_FORMAT, TAB * indent,
                     'Name',
                     'G',
                     'AB',
@@ -234,7 +204,7 @@ class BattingStatFormatter
     indent += @indent
     average  = stats.average.nil? ? "NaN" : sprintf("%.3f",stats.average).gsub(/^0+/, '')
     slugging = stats.slugging.nil? ? "NaN" : sprintf("%.3f",stats.slugging).gsub(/^0+/, '')
-    @out << sprintf(PLAYER_LINE_FORMAT, TAB * (indent + 1),
+    @out << sprintf("%s" + PLAYER_LINE_FORMAT, TAB * indent,
                     player.name,
                     stats.total_games,
                     stats.total_at_bats,

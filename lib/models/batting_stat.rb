@@ -2,7 +2,7 @@ class BattingStat < Sequel::Model
   plugin :timestamps
 
   many_to_one :player
-  many_to_one :team
+  many_to_one :team, key: [:team_id, :league_id]
   many_to_one :league
 
   dataset_module do
@@ -82,7 +82,7 @@ class BattingStat < Sequel::Model
   end
 
   def_dataset_method(:for_team) do |team|
-    where(team_id: team).default_order
+    where(team: team).default_order
   end
 
   def_dataset_method(:for_league) do |league|

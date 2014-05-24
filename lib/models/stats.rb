@@ -19,21 +19,25 @@ class Stats < Hashie::Dash
   end
 
   def self.sort_field(field)
-    define_method('sort_by_' + field.to_s) do
+    define_method('_sort') do
       @sorted ||= true
       self.eligible_stats.sort!{|a,b| b.stats.send(field) <=> a.stats.send(field) }
     end
 
     define_method(:winner) do
       @sorted ||= false
-      self.send('sort_by_' + field.to_s) unless @sorted
+      self._sort unless @sorted
       self.eligible_stats.first
     end
 
     define_method(:top) do |c|
       @sorted ||= false
-      self.send('sort_by_' + field.to_s) unless @sorted
+      self._sort unless @sorted
       self.eligible_stats.slice(c)
+    end
+
+    define_method(field) do
+      self.stats.send(field)
     end
   end
 end

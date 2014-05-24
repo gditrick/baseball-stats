@@ -4,7 +4,8 @@ Sequel.migration do
       primary_key :id, type: Bignum
       foreign_key :player_id, :players, type: String 
       foreign_key :league_id, :leagues, type: String 
-      foreign_key :team_id, :teams, type: String 
+      String      :team_id
+      foreign_key [:team_id, :league_id], :teams
       String      :year
       Fixnum      :games
       Fixnum      :at_bats
