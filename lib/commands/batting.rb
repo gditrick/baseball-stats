@@ -2,11 +2,25 @@ require_relative 'app'
 
 module BaseballStats
   class Batting < Thor
-    desc 'avg OPTIONS', 'Batting sorted by avg of league, team or player'
-    method_option :year, default: Time.now.year, aliases: '-y'
-    method_option :league, aliases: '-l'
-    method_option :team, aliases: '-t'
-    method_option :restrict, default: 400, type: :numeric
+    LEAGUE_IDS=%w( AL NL )
+    TEAM_IDS=%w( ARI ATL BAL BOS CHA CHN CIN CLE COL DET FLO HOU KCA LAA LAN MIA
+                 MIL MIN NYA NYN OAK PHI PIT SDN SEA SFN SLN TBA TEX TOR WAS)
+
+    desc 'avg OPTIONS', 'Batting statistics sorted by avg'
+    method_option :year, aliases: '-y',
+                         default: Time.now.year,
+                         desc: 'year of the stats'
+    method_option :league, aliases: '-l',
+                           enum: LEAGUE_IDS,
+                           desc: 'show stats for a specific league'
+    method_option :team, aliases: '-t',
+                         enum: TEAM_IDS,
+                         desc: 'show stats for a specific team'
+    method_option :restrict, aliases: '-r',
+                             default: 400,
+                             type: :numeric,
+                             banner: 'AB | --no-restrict',
+                             desc: 'restrict stats to a minimum AB (at_bats)'
     def avg
       BaseballStats::App.new.invoke(:init)
         
@@ -18,11 +32,21 @@ module BaseballStats
       puts BattingStatFormatter.new(:average, report_object, stats, options).out
     end
 
-    desc 'slug OPTIONS', 'Batting sorted by slugging of league, team or player'
-    method_option :year, default: Time.now.year, aliases: '-y'
-    method_option :league, aliases: '-l'
-    method_option :team, aliases: '-t'
-    method_option :restrict, default: 400, type: :numeric
+    desc 'slug OPTIONS', 'Batting statistics sorted by slugging'
+    method_option :year, aliases: '-y',
+                         default: Time.now.year,
+                         desc: 'year of the stats'
+    method_option :league, aliases: '-l',
+                           enum: LEAGUE_IDS,
+                           desc: 'show stats for a specific league'
+    method_option :team, aliases: '-t',
+                         enum: TEAM_IDS,
+                         desc: 'show stats for a specific team'
+    method_option :restrict, aliases: '-r',
+                             default: 400,
+                             type: :numeric,
+                             banner: 'AB | --no-restrict',
+                             desc: 'restrict stats to a minimum AB (at_bats)'
     def slug
       BaseballStats::App.new.invoke(:init)
         
@@ -35,7 +59,8 @@ module BaseballStats
     end
 
     desc 'player PLAYER OPTIONS', 'Batting stats for player'
-    method_option :year, aliases: '-y'
+    method_option :year, aliases: '-y',
+                  desc: 'show only a specific year'
     def player(player_id)
       BaseballStats::App.new.invoke(:init)
         
@@ -50,13 +75,30 @@ module BaseballStats
       end
     end
 
-    desc 'triple-crown <year>', 'Triple crown winner for <year> for <league>'
-    method_option :year, default: Time.now.year - 1, aliases: '-y', required: true
-    method_option :league, aliases: '-l'
-    method_option :team, aliases: '-t'
-    method_option :restrict, default: 400, type: :numeric
-    method_option :expand, default: false, type: :boolean, aliases: '-e'
-    method_option :top, default: 3, type: :numeric, aliases: '-T'
+    desc 'triple-crown OPTIONS', 'Triple crown winner(s)'
+    method_option :year, aliases: '-y',
+                         default: Time.now.year - 1,
+                         desc: 'year of the stats'
+    method_option :league, aliases: '-l',
+                           enum: LEAGUE_IDS,
+                           desc: 'show for a specific league'
+    method_option :team, aliases: '-t',
+                         enum: TEAM_IDS,
+                         desc: 'show for a specific team'
+    method_option :restrict, aliases: '-r',
+                             default: 400,
+                             type: :numeric,
+                             banner: 'AB | --no-restrict',
+                             desc: 'restrict stats to a minimum AB (at_bats)'
+    method_option :expand, aliases: '-e',
+                           default: false,
+                           type: :boolean,
+                           desc: 'expand showing leaders in each category'
+    method_option :top, aliases: '-T',
+                        default: 3,
+                        type: :numeric,
+                        banner: 'N',
+                        desc: 'when expand show only the top N leaders'
     def triple_crown
       BaseballStats::App.new.invoke(:init)
         
@@ -71,10 +113,12 @@ module BaseballStats
 
     def report_object
       case
-        when options[:league] then
+        when (options[:league] and options[:team].nil?) then
           League[options[:league]]
         when options[:team] then
-          Team[options[:team]]
+          options[:league] ||=
+              BattingStat.where(team_id: options[:team], year: options[:year]).first.league.id
+          Team[options[:team], options[:league]]
         when options[:player] then
           Player[options[:player]]
         else

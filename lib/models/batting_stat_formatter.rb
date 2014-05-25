@@ -105,7 +105,7 @@ class BattingStatFormatter
         end
 
       else
-        raise "Unknown Batting Stat type to format" 
+        raise "Unknown Batting Stat type to format: #{@object}" 
     end
   end
 
