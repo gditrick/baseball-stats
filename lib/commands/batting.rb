@@ -69,7 +69,7 @@ module BaseballStats
         stats = BattingStat.for_player(player)
         stats = stats.for_year(options[:year]) if options[:year]
 
-        puts BattingStatFormatter.new(:year, player, stats, options[:year]).out
+        puts BattingStatFormatter.new(:year, player, stats, options).out
       else
         puts "No player with id: #{player_id}"
       end

@@ -5,9 +5,12 @@ gem 'hashie'
 gem 'remote_table'
 gem 'fastercsv'
 gem 'sequel'
-gem 'rspec'
+gem 'sqlite3-ruby', :require => 'sqlite3'
 gem 'log4r'
 
-group :development do
-  gem 'sqlite3-ruby', :require => 'sqlite3'
+group :test do
+  gem 'rspec'
+  gem 'rspec-given'
+  gem 'factory_girl'
+  gem 'faker'
 end
