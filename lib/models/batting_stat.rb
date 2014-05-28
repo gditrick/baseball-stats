@@ -98,7 +98,7 @@ class BattingStat < Sequel::Model
   end
 
   def average
-     (hits.to_f / at_bats.to_f).round(3) unless at_bats.nil? or at_bats == 0
+    (hits.to_f / at_bats.to_f).round(3) unless at_bats.nil? or at_bats == 0
   end
 
   def slugging

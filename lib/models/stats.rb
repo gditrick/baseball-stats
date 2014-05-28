@@ -1,3 +1,5 @@
+require_relative 'batting_stat'
+
 class Stats < Hashie::Dash
   property :stats, required: true
   property :restrict, default: 400
@@ -19,7 +21,7 @@ class Stats < Hashie::Dash
   end
 
   def self.sort_field(field)
-    raise "BattingStat does not contain #{field}" unless BattingStat.columns.include?(field)
+    raise "BattingStat does not contain #{field}" unless BattingStat.instance_dataset.respond_to?(field)
     define_method('_sort') do
       @sorted ||= true
       self.eligible_stats.sort!{|a,b| b.stats.send(field) <=> a.stats.send(field) }
