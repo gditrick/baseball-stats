@@ -31,24 +31,24 @@ class TripleCrownFormatter
            hr_stats.eligible_stats.empty? or 
            rbi_stats.eligible_stats.empty?
           @out << TAB * (@indent+1) + "No Winner\n"
-        end
-
-        if avg_stats.winner.player == hr_stats.winner.player and
-           hr_stats.winner.player == rbi_stats.winner.player
-          @out << BattingStatFormatter.new(:average, avg_stats.winner.player, avg_stats.winner.stats, options.merge(indent: @indent + 1)).out
         else
-          @out << TAB * (@indent+1) +  "No Winner\n"
-        end unless avg_stats.eligible_stats.empty? or hr_stats.eligible_stats.empty? or rbi_stats.eligible_stats.empty?
+          if avg_stats.winner.player == hr_stats.winner.player and
+             hr_stats.winner.player == rbi_stats.winner.player
+            @out << BattingStatFormatter.new(:average, avg_stats.winner.player, avg_stats.winner.stats, options.merge(indent: @indent + 1)).out
+          else
+            @out << TAB * (@indent+1) +  "No Winner\n"
+          end unless avg_stats.eligible_stats.empty? or hr_stats.eligible_stats.empty? or rbi_stats.eligible_stats.empty?
 
-        if @expand
-          @out << "\n"
-          leaders(hr_stats, rbi_stats, avg_stats)
-          @object.teams.each do |team|
-            stats = @stats.dup.where(team: team)
-            stats.calculated_stats=nil
-            
-            @out << "\n\n"
-            @out << TripleCrownFormatter.new(team, stats, options.merge(indent: @indent + 1)).out
+          if @expand
+            @out << "\n"
+            leaders(hr_stats, rbi_stats, avg_stats)
+            @object.teams.each do |team|
+              stats = @stats.dup.where(team: team)
+              stats.calculated_stats=nil
+              
+              @out << "\n\n"
+              @out << TripleCrownFormatter.new(team, stats, options.merge(indent: @indent + 1)).out
+            end
           end
         end
 
@@ -58,39 +58,45 @@ class TripleCrownFormatter
            hr_stats.eligible_stats.empty? or 
            rbi_stats.eligible_stats.empty?
           @out << TAB * (@indent+1) + "No Winner\n"
-        end
-        if avg_stats.winner.player == hr_stats.winner.player and
-           hr_stats.winner.player == rbi_stats.winner.player
-          @out << BattingStatFormatter.new(:average, avg_stats.winner.player, avg_stats.winner.stats, options.merge(indent: @indent + 1)).out
         else
-          @out << TAB * (@indent+1) + "No Winner\n"
-        end unless avg_stats.eligible_stats.empty? or hr_stats.eligible_stats.empty? or rbi_stats.eligible_stats.empty?
+          if avg_stats.winner.player == hr_stats.winner.player and
+             hr_stats.winner.player == rbi_stats.winner.player
+            @out << BattingStatFormatter.new(:average, avg_stats.winner.player, avg_stats.winner.stats, options.merge(indent: @indent + 1)).out
+          else
+            @out << TAB * (@indent+1) + "No Winner\n"
+          end
 
-        if @expand
-          @out << "\n"
-          leaders(hr_stats, rbi_stats, avg_stats)
+          if @expand
+            @out << "\n"
+            leaders(hr_stats, rbi_stats, avg_stats)
+          end
         end
 
       when BattingStat
         mlb_header(@stats)
-        if avg_stats.winner.player == hr_stats.winner.player and
-           hr_stats.winner.player == rbi_stats.winner.player
-          @out << BattingStatFormatter.new(:average, avg_stats.winner.player, avg_stats.winner.stats, @year, @restrict).out
-        else
+        if avg_stats.eligible_stats.empty? or 
+           hr_stats.eligible_stats.empty? or 
+           rbi_stats.eligible_stats.empty?
           @out << "No Winner\n"
-        end
-        if @expand
-          @out << "\n"
-          leaders(hr_stats, rbi_stats, avg_stats)
-          League.order(:id).each do |league|
-            stats = @stats.dup.where(league: league)
-            stats.calculated_stats=nil
-            
-            @out << "\n\n\n"
-            @out << TripleCrownFormatter.new(league, stats, options.merge(indent: @indent + 1)).out
+        else
+          if avg_stats.winner.player == hr_stats.winner.player and
+             hr_stats.winner.player == rbi_stats.winner.player
+            @out << BattingStatFormatter.new(:average, avg_stats.winner.player, avg_stats.winner.stats, @year, @restrict).out
+          else
+            @out << "No Winner\n"
+          end
+          if @expand
+            @out << "\n"
+            leaders(hr_stats, rbi_stats, avg_stats)
+            League.order(:id).each do |league|
+              stats = @stats.dup.where(league: league)
+              stats.calculated_stats=nil
+              
+              @out << "\n\n\n"
+              @out << TripleCrownFormatter.new(league, stats, options.merge(indent: @indent + 1)).out
+            end
           end
         end
-
       else
         raise "Unknown Triple Crown type to format" 
     end

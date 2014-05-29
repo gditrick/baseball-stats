@@ -5,6 +5,7 @@ module BaseballStats
     LEAGUE_IDS=%w( AL NL )
     TEAM_IDS=%w( ARI ATL BAL BOS CHA CHN CIN CLE COL DET FLO HOU KCA LAA LAN MIA
                  MIL MIN NYA NYN OAK PHI PIT SDN SEA SFN SLN TBA TEX TOR WAS)
+    MIP_TYPES=%w( avg slug runs rbi hr )
 
     desc 'avg OPTIONS', 'Batting statistics sorted by avg'
     method_option :year, aliases: '-y',
@@ -107,6 +108,47 @@ module BaseballStats
       stats = stats.for_team(options[:team]) if options[:team]
 
       puts TripleCrownFormatter.new(report_object, stats, options).out
+    end
+
+    desc 'mip STAT OPTIONS', 'Most improved player by STAT type avg|slug|hrs|rbi|runs'
+    method_option :year, aliases: '-y',
+                         default: Time.now.year - 1,
+                         desc: 'year of the stats'
+    method_option :league, aliases: '-l',
+                           enum: LEAGUE_IDS,
+                           desc: 'show for a specific league'
+    method_option :team, aliases: '-t',
+                         enum: TEAM_IDS,
+                         desc: 'show for a specific team'
+    method_option :restrict, aliases: '-r',
+                             default: 200,
+                             type: :numeric,
+                             banner: 'AB | --no-restrict',
+                             desc: 'restrict stats to a minimum AB (at_bats)'
+    method_option :expand, aliases: '-e',
+                           default: false,
+                           type: :boolean,
+                           desc: 'expand showing leaders'
+    method_option :top, aliases: '-T',
+                        default: 3,
+                        type: :numeric,
+                        banner: 'N',
+                        desc: 'when expand show only the top N leaders'
+    def mip(stat_type)
+      unless MIP_TYPES.include?(stat_type)
+        puts "Invalid Most Improved stat type: #{MIP_TYPES}"
+        return
+      end
+
+      BaseballStats::App.new.invoke(:init)
+        
+      stats = BattingStat.for_year(options[:year])
+      stats = stats.for_league(options[:league]) if options[:league]
+      stats = stats.for_team(options[:team]) if options[:team]
+
+      prev_stats = BattingStat.for_year(options[:year].to_i - 1)
+
+      puts MostImprovedFormatter.new(report_object, stat_type, stats, prev_stats, options).out
     end
 
     private

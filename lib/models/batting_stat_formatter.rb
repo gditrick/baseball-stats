@@ -10,13 +10,14 @@ class BattingStatFormatter
   attr_accessor :restrict
 
   def initialize(order, object, stats, options)
-    @order    = order
-    @object   = object
-    @stats    = stats
-    @year     = options[:year]
-    @restrict = options[:restrict] || 0
-    @indent   = options[:indent] || 0
-    @out      = ""
+    @order      = order
+    @object     = object
+    @stats      = stats
+    @year       = options[:year]
+    @restrict   = options[:restrict] || 0
+    @indent     = options[:indent] || 0
+    @no_headers = options[:no_headers] || false
+    @out        = ""
 
 
     case @object
@@ -50,24 +51,26 @@ class BattingStatFormatter
         end
 
       when Player
-        player_header(@object, @stats)
         years = @stats.map(&:year).uniq.sort
-        @out << "\n"
-        @out << sprintf("%s%-4s %-4s" + STATS_HEADER_FORMAT, TAB * @indent,
-                        'Year',
-                        'Team',
-                        'G',
-                        'AB',
-                        'R',
-                        'H',
-                        '2B',
-                        '3B',
-                        'HR',
-                        'RBI',
-                        'SB',
-                        'CS',
-                        'AVG',
-                        'SLUG')
+        unless @no_headers
+          player_header(@object, @stats)
+          @out << "\n"
+          @out << sprintf("%s%-4s %-4s" + STATS_HEADER_FORMAT, TAB * @indent,
+                          'Year',
+                          'Team',
+                          'G',
+                          'AB',
+                          'R',
+                          'H',
+                          '2B',
+                          '3B',
+                          'HR',
+                          'RBI',
+                          'SB',
+                          'CS',
+                          'AVG',
+                          'SLUG')
+        end
         years.each do |year|
           year_stats = @stats.dup.where(year: year)
           year_stats.calculated_stats=nil
@@ -76,7 +79,7 @@ class BattingStatFormatter
             slugging = stat.slugging.nil? ? "NaN" : sprintf("%.3f", stat.slugging).gsub(/^0+/, '')
             @out << sprintf("%s%-4s %-4s" + STATS_LINE_FORMAT, TAB * @indent,
                         year,
-                        stat.team.id,
+                        stat.team_id,
                         stat.games,
                         stat.at_bats,
                         stat.runs,
@@ -103,7 +106,6 @@ class BattingStatFormatter
           @out << BattingStatFormatter.new(@order, league, league_stats, options.merge(indent: @indent + 1)).out
           @out << "\n\n\n"
         end
-
       else
         raise "Unknown Batting Stat type to format: #{@object}" 
     end
