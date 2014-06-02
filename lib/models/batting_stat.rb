@@ -82,7 +82,7 @@ class BattingStat < Sequel::Model
   end
 
   def_dataset_method(:for_team) do |team|
-    where(team_id: team).default_order
+    where(team: team).default_order
   end
 
   def_dataset_method(:for_league) do |league|

@@ -1,11 +1,8 @@
 require 'models/batting_stat'
 FactoryGirl.define do
   factory :batting_stat do
-    player_id 'test'
-    league_id 'TL'
-    team_id   'TST'
-
     trait :with_nil_data do
+      games           nil
       at_bats         nil
       runs            nil 
       hits            nil
@@ -18,6 +15,7 @@ FactoryGirl.define do
     end
 
     trait :with_zero_data do
+      games           0
       at_bats         0
       runs            0
       hits            0

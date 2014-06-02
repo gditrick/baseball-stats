@@ -20,4 +20,9 @@ db = db_commands.invoke :connect, [config.database]
 db_commands.invoke :migrate, [db, config.schema_scripts_path]
 
         
+Dir[File.expand_path(File.join("..", "factories", "**", "*.rb"), __FILE__)].each { |f| load f }
 Dir[File.expand_path(File.join("..", "support", "**", "*.rb"), __FILE__)].each { |f| load f }
+
+RSpec.configure do |config|
+  config.include FactoryGirl::Syntax::Methods
+end
