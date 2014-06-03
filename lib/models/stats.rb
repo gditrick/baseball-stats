@@ -1,5 +1,4 @@
-require_relative 'batting_stat'
-
+require 'models/batting_stat'
 class Stats < Hashie::Dash
   property :stats, required: true
   property :restrict, default: 400

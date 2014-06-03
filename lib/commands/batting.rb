@@ -1,4 +1,4 @@
-require_relative 'app'
+require 'commands/app'
 
 module BaseballStats
   class Batting < Thor

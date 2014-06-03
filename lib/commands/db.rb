@@ -1,4 +1,3 @@
-require 'pp'
 module BaseballStats
   class Db < Thor
     Sequel.extension :migration

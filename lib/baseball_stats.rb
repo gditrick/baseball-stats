@@ -1,6 +1,10 @@
 require File.expand_path('../../config/boot', __FILE__)
-require_relative 'application'
-require_relative 'commands'
+
+libpath = File.expand_path(File.join('..'),__FILE__)
+$:.unshift(libpath) unless $:.include?(libpath)
+
+require 'application'
+require 'commands'
 
 module BaseballStats
   class MLB < Thor

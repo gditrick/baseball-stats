@@ -1,8 +1,3 @@
-require_relative 'most_improved_home_runs'
-require_relative 'most_improved_rbi'
-require_relative 'most_improved_runs'
-require_relative 'most_improved_slugging'
-
 class MostImprovedFormatter
   TAB="\t"
   HYPHEN="-"

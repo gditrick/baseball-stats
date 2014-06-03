@@ -1,1 +1,1 @@
-require_relative 'commands/batting'
+require 'commands/batting'

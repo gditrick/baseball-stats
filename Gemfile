@@ -13,4 +13,5 @@ group :test do
   gem 'rspec-given'
   gem 'factory_girl'
   gem 'faker'
+  gem 'simplecov'
 end
