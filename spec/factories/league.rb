@@ -11,7 +11,7 @@ FactoryGirl.define do
 
       after(:create) do |league, evaluator|
         evaluator.teams_count.times do |i|
-          team_id = sprintf("%c%2.2d", league.id[0], i+1)
+          team_id = sprintf("%s%3.3d", league.id, i+1)
           FactoryGirl.create(:team, league: league, team_id: team_id)
         end
       end
