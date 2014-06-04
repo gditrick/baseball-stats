@@ -1,29 +1,18 @@
-class MostImprovedStats < Hashie::Dash
-  property :stats, required: true
+class MostImprovedStats < Stats
   property :prev_stats, required: true
   property :restrict, default: 200
-  property :players
-  property :player_stats
-  property :eligible_stats
 
   def initialize(*args)
     super
-    self.players = self.stats.map(&:player).uniq
-    self.player_stats = self.players.map do |a|
-      player_stat = Hashie::Mash.new
-      player_stat.player = a
-      player_stat.stats = stats.dup.where(player: a)
-      player_stat.stats.calculated_stats=nil
-      player_stat.prev_stats = prev_stats.dup.where(player: a)
-      player_stat.prev_stats.calculated_stats=nil
-      player_stat
+    self.player_stats.each do |a|
+      a.prev_stats = prev_stats.dup.where(player: a.player)
+      a.prev_stats.calculated_stats=nil
     end
-    self.eligible_stats=self.player_stats.reject{|a| a.stats.empty? or a.stats.total_at_bats < (self.restrict.nil? ? 0 : self.restrict) or
-                                                     a.prev_stats.empty? or a.prev_stats.total_at_bats < (self.restrict.nil? ? 0 : self.restrict) }
+    self.eligible_stats.reject!{|a| a.prev_stats.empty? or a.prev_stats.total_at_bats < (self.restrict.nil? ? 0 : self.restrict) }
   end
 
   def self.sort_field(field)
-    raise "BattingStat does not have a method #{field}" unless BattingStat.instance_dataset.respond_to?(field)
+    super
     define_method('_sort') do
       @sorted ||= true
       self.eligible_stats.sort! do |a,b|
@@ -35,16 +24,6 @@ class MostImprovedStats < Hashie::Dash
       end
     end
 
-    define_method(:most_improved) do
-      @sorted ||= false
-      self._sort unless @sorted
-      self.eligible_stats.first
-    end
-
-    define_method(:top) do |c|
-      @sorted ||= false
-      self._sort unless @sorted
-      self.eligible_stats.slice(c)
-    end
+    alias_method :most_improved, :winner 
   end
 end
