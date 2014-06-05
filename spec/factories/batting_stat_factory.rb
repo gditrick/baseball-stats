@@ -1,4 +1,3 @@
-require 'models/batting_stat'
 FactoryGirl.define do
   factory :batting_stat do
     trait :with_nil_data do

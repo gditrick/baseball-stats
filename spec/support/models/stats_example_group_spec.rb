@@ -1,13 +1,6 @@
 require 'models/stats'
 
 shared_examples_for "BasicStats" do
-  Then { respond_to(:sort_field) }
-  Then { respond_to(:stats) }
-  Then { respond_to(:restrict) }
-  Then { respond_to(:players) }
-  Then { respond_to(:player_stats) }
-  Then { respond_to(:eligible_stats) }
-
   context ".sort_field" do
     describe "invalid sort attribute" do
       Given(:invalid_sort_field) { Stat.sort_field(:xyz) }

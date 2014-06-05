@@ -16,7 +16,9 @@ class Stats < Hashie::Dash
       player_stat.stats.calculated_stats=nil
       player_stat
     end
-    self.eligible_stats=self.player_stats.reject{|a| a.stats.empty? or a.stats.total_at_bats < (self.restrict.nil? ? 0 : self.restrict) }
+    self.eligible_stats=self.player_stats.reject{|a| a.stats.empty? or
+                                                     a.stats.total_at_bats.nil? or
+                                                     a.stats.total_at_bats < (self.restrict.nil? ? 0 : self.restrict) }
   end
 
   def self.sort_field(field)
@@ -24,7 +26,8 @@ class Stats < Hashie::Dash
                                                                BattingStat.new.respond_to?(field)
     define_method('_sort') do
       @sorted ||= true
-      self.eligible_stats.sort!{|a,b| b.stats.send(field) <=> a.stats.send(field) }
+      self.eligible_stats.reject! {|a| a.stats.send(field).nil? }
+      self.eligible_stats.sort!{|a,b| [b.stats.send(field), a.player.name] <=> [a.stats.send(field), b.player.name] }
     end
 
     define_method(:winner) do

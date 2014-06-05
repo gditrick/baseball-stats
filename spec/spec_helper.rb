@@ -60,7 +60,32 @@ def create_basic_data(prefix, year)
   League.each do |league|
     BATTING_STAT_ATTRS.each_with_index do |attr, i|
       player = FactoryGirl.create(:player, id: make_player_id(prefix, league.id, i+1))
-      create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], attr => 1)
+      if [:hits, :doubles, :triples, :home_runs].include?(attr)
+        if attr == :hits
+          create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: 1, attr => 1)
+        else
+          create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: 1, hits: 1, attr => 1)
+        end
+      else
+        create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], attr => 1)
+      end
+    end
+  end
+end
+
+def create_basic_prev_data(prefix, year)
+  League.each do |league|
+    BATTING_STAT_ATTRS.each_with_index do |attr, i|
+      player = Player[make_player_id(prefix, league.id, i+1)]
+      if [:hits, :doubles, :triples, :home_runs].include?(attr)
+        if attr == :hits
+          create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: 1, attr => 1)
+        else
+          create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: 1, hits: 1, attr => 1)
+        end
+      else
+        create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], attr => 1)
+      end
     end
   end
 end

@@ -1,4 +1,3 @@
-require 'models/league'
 FactoryGirl.define do
   factory :league do
     id "TL"

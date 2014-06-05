@@ -1,4 +1,3 @@
-require 'models/team'
 FactoryGirl.define do
   factory :team do
     sequence :team_id, 1 do |i| make_team_id(league.id, i) end
