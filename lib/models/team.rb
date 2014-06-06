@@ -1,4 +1,5 @@
 class Team < Sequel::Model
+  attr_accessor :id  # for FactoryGirl stubbing
   set_primary_key [:team_id, :league_id]
   plugin :timestamps
 

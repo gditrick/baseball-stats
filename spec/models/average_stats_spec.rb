@@ -42,7 +42,7 @@ describe AverageStats do
 
     describe "for_year('2011') no AB restriction" do
       Given(:stats) { AverageStats.new(stats: BattingStat.for_year('2011'), restrict: nil) }
-      Given(:winning_player) { send(make_player_given_id('', 'AL', (BATTING_STAT_ATTRS.index(:hits) + 1))) }
+      Given(:winning_player) { send(make_player_given_id('', 'AL', (BATTING_STAT_ATTRS.index(:hits) * BASIC_DATA_PLAYERS_COUNT + 1))) }
       context "#winner" do
         When(:winner) { stats.winner }
         Then { expect(winner).not_to be_nil }

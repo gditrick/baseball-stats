@@ -49,7 +49,7 @@ describe MostImprovedSlugging do
       context "#slugging_diff" do
         When(:total) { stats.slugging_diff }
         Then { expect(total).not_to be_nil }
-        And { total == 0.0 }
+        And { total.round(3) == 0.0 }
       end
     end
 
@@ -57,7 +57,7 @@ describe MostImprovedSlugging do
       Given(:stats) { MostImprovedSlugging.new(stats: BattingStat.for_year('2011'),
                                               prev_stats: BattingStat.for_year('2010'),
                                               restrict: nil) }
-      Given(:most_improved_player) { send(make_player_given_id('', 'AL', (BATTING_STAT_ATTRS.index(:at_bats) + 1))) }
+      Given(:most_improved_player) { send(make_player_given_id('', 'AL', (BATTING_STAT_ATTRS.index(:at_bats) * BASIC_DATA_PLAYERS_COUNT + 1))) }
       context "#most_improved" do
         When(:most_improved) { stats.most_improved }
         Then { expect(most_improved).not_to be_nil }
@@ -86,7 +86,7 @@ describe MostImprovedSlugging do
       context "#slugging_diff" do
         When(:total) { stats.slugging_diff }
         Then { expect(total).not_to be_nil }
-        And { total == 0.0 }
+        And { total.round(3) == 0.0 }
       end
     end
   end

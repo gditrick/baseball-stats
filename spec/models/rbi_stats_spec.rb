@@ -36,13 +36,13 @@ describe RbiStats do
       context "#total_rbi" do
         When(:total) { stats.total_rbi }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
     end
 
     describe "for_year('2011') no AB restrict" do
       Given(:stats) { RbiStats.new(stats: BattingStat.for_year('2011'), restrict: nil) }
-      Given(:winning_player) { send(make_player_given_id('', 'AL', (BATTING_STAT_ATTRS.index(:rbi) + 1))) }
+      Given(:winning_player) { send(make_player_given_id('', 'AL', (BATTING_STAT_ATTRS.index(:rbi) * BASIC_DATA_PLAYERS_COUNT + 1))) }
       context "#winner" do
         When(:winner) { stats.winner }
         Then { expect(winner).not_to be_nil }
@@ -61,7 +61,7 @@ describe RbiStats do
       context "#total_rbi" do
         When(:total) { stats.total_rbi }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
     end
   end

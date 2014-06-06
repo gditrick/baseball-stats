@@ -40,6 +40,7 @@ RSpec.configure do |config|
 end
 
 BATTING_STAT_ATTRS=[:games, :at_bats, :runs, :hits, :doubles, :triples, :home_runs, :rbi, :stolen_bases, :caught_stealing]
+BASIC_DATA_PLAYERS_COUNT=3
 
 def make_player_id(prefix, league_id, count)
   sprintf("%s-%sP%3.3d", prefix, league_id, count)
@@ -59,15 +60,21 @@ def create_basic_data(prefix, year)
   end
   League.each do |league|
     BATTING_STAT_ATTRS.each_with_index do |attr, i|
-      player = FactoryGirl.create(:player, id: make_player_id(prefix, league.id, i+1))
-      if [:hits, :doubles, :triples, :home_runs].include?(attr)
-        if attr == :hits
-          create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: 1, attr => 1)
+      BASIC_DATA_PLAYERS_COUNT.times do |k|
+        player = FactoryGirl.create(:player, id: make_player_id(prefix, league.id, (i*BASIC_DATA_PLAYERS_COUNT)+k+1))
+        if [:hits, :doubles, :triples, :home_runs].include?(attr)
+          if attr == :hits
+            create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i],
+                                                   at_bats: BASIC_DATA_PLAYERS_COUNT - k, attr => BASIC_DATA_PLAYERS_COUNT - k)
+          else
+            create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i],
+                                                   at_bats: BASIC_DATA_PLAYERS_COUNT - k,
+                                                   hits: BASIC_DATA_PLAYERS_COUNT - k, attr => BASIC_DATA_PLAYERS_COUNT - k)
+          end
         else
-          create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: 1, hits: 1, attr => 1)
+          create(:batting_stat, :with_zero_data, year: year, league: league, player: player,
+                                                 team: league.teams[i], attr => BASIC_DATA_PLAYERS_COUNT - k)
         end
-      else
-        create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], attr => 1)
       end
     end
   end
@@ -76,15 +83,17 @@ end
 def create_basic_prev_data(prefix, year)
   League.each do |league|
     BATTING_STAT_ATTRS.each_with_index do |attr, i|
-      player = Player[make_player_id(prefix, league.id, i+1)]
-      if [:hits, :doubles, :triples, :home_runs].include?(attr)
-        if attr == :hits
-          create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: 1, attr => 1)
+      BASIC_DATA_PLAYERS_COUNT.times do |k|
+        player = Player[make_player_id(prefix, league.id, (i*BASIC_DATA_PLAYERS_COUNT)+k+1)]
+        if [:hits, :doubles, :triples, :home_runs].include?(attr)
+          if attr == :hits
+            create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: k + 1, attr => k + 1)
+          else
+            create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: k + 1, hits: k + 1, attr => k + 1)
+          end
         else
-          create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], at_bats: 1, hits: 1, attr => 1)
+          create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], attr => k + 1)
         end
-      else
-        create(:batting_stat, :with_zero_data, year: year, league: league, player: player, team: league.teams[i], attr => 1)
       end
     end
   end
@@ -96,24 +105,36 @@ def basic_givens(prefix)
     BATTING_STAT_ATTRS.each_index do |i|
       team_id = make_team_id(league_id, i+1)
       Given(("team%s" % team_id).to_sym) { Team[team_id, league_id] }
-      player_id = make_player_id(prefix, league_id, i+1)
-      given_id =  make_player_given_id(prefix, league_id, i+1)
-      Given(given_id.to_sym) { Player[player_id] }
+      BASIC_DATA_PLAYERS_COUNT.times do |k|
+        player_id = make_player_id(prefix, league_id, i*BASIC_DATA_PLAYERS_COUNT+k+1)
+        given_id =  make_player_given_id(prefix, league_id, i*BASIC_DATA_PLAYERS_COUNT+k+1)
+        Given(given_id.to_sym) { Player[player_id] }
+      end
     end
   end
   Given(:basic_leagues) { [leagueAL, leagueNL] }
   Given(:basic_stats_leagues) do
-     BATTING_STAT_ATTRS.inject([]) {|a,i| a << leagueAL} +
-     BATTING_STAT_ATTRS.inject([]) {|a,i| a << leagueNL}
+     BATTING_STAT_ATTRS.inject([]){|a,i| BASIC_DATA_PLAYERS_COUNT.times.inject(a){|m,k| m << leagueAL}} +
+     BATTING_STAT_ATTRS.inject([]){|a,i| BASIC_DATA_PLAYERS_COUNT.times.inject(a){|m,k| m << leagueNL}}
   end
-  Given(:basic_stats_teams) do
-     BATTING_STAT_ATTRS.each_index.inject([]) {|a,i| a << send('team' + make_team_id('AL', i+1))} +
-     BATTING_STAT_ATTRS.each_index.inject([]) {|a,i| a << send('team' + make_team_id('NL', i+1))}
+  Given(:basic_stats_al_teams) do
+    BATTING_STAT_ATTRS.each_index.inject([]){|a,i| BASIC_DATA_PLAYERS_COUNT.times.inject(a){|m,k| m << send('team' + make_team_id('AL', i+1))}}
   end
-  Given(:basic_stats_players) do
-     BATTING_STAT_ATTRS.each_index.inject([]) {|a,i| a << send(make_player_given_id('', 'AL', i+1))} +
-     BATTING_STAT_ATTRS.each_index.inject([]) {|a,i| a << send(make_player_given_id('', 'NL', i+1))}
+  Given(:basic_stats_nl_teams) do
+    BATTING_STAT_ATTRS.each_index.inject([]){|a,i| BASIC_DATA_PLAYERS_COUNT.times.inject(a){|m,k| m << send('team' + make_team_id('NL', i+1))}}
   end
+  Given(:basic_stats_teams) { basic_stats_al_teams + basic_stats_nl_teams }
+  Given(:basic_stats_al_players) do
+    BATTING_STAT_ATTRS.each_index.inject([]) do |a,i|
+      BASIC_DATA_PLAYERS_COUNT.times.inject(a){|m,k| m << send(make_player_given_id('', 'AL', i*BASIC_DATA_PLAYERS_COUNT+k+1))}
+    end
+  end
+  Given(:basic_stats_nl_players) do
+    BATTING_STAT_ATTRS.each_index.inject([]) do |a,i|
+      BASIC_DATA_PLAYERS_COUNT.times.inject(a){|m,k| m << send(make_player_given_id('', 'NL', i*BASIC_DATA_PLAYERS_COUNT+k+1))}
+    end
+  end
+  Given(:basic_stats_players) { basic_stats_al_players + basic_stats_nl_players }
 end
 =begin
   create(:batting_stat, :with_nil_data,  year: '2011', league: al, player: players[0], team: al.teams[0])

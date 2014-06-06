@@ -40,12 +40,12 @@ describe MostImprovedRuns do
       context "#total_runs" do
         When(:total) { stats.total_runs }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
       context "#prev_total_runs" do
         When(:total) { stats.prev_total_runs }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
       context "#total_runs_diff" do
         When(:total) { stats.total_runs_diff }
@@ -58,7 +58,7 @@ describe MostImprovedRuns do
       Given(:stats) { MostImprovedRuns.new(stats: BattingStat.for_year('2011'),
                                                prev_stats: BattingStat.for_year('2010'),
                                                restrict: nil) }
-      Given(:most_improved_player) { send(make_player_given_id('', 'AL', 1)) }
+      Given(:most_improved_player) { send(make_player_given_id('', 'AL', (BATTING_STAT_ATTRS.index(:runs) * BASIC_DATA_PLAYERS_COUNT + 1))) }
       context "#most_improved" do
         When(:most_improved) { stats.most_improved }
         Then { expect(most_improved).not_to be_nil }
@@ -77,12 +77,12 @@ describe MostImprovedRuns do
       context "#total_runs" do
         When(:total) { stats.total_runs }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
       context "#prev_total_runs" do
         When(:total) { stats.prev_total_runs }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
       context "#total_runs_diff" do
         When(:total) { stats.total_runs_diff }

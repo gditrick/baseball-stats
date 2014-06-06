@@ -4,13 +4,6 @@ describe BattingStat do
   And  { should respond_to(:team) }
   And  { should respond_to(:league) }
 
-  context ".new" do
-    Given(:stat) { BattingStat.new }
-    Then { stat.should respond_to(:player) }
-    And  { stat.should respond_to(:team) }
-    And  { stat.should respond_to(:league) }
-  end
-
   describe "dataset methods/scopes" do
     before(:all) do
       create_basic_data(BattingStat.to_s, '2011')
@@ -34,10 +27,10 @@ describe BattingStat do
         Given(:stats) { BattingStat.default_order }
         When(:all) { stats.all }
         Then { all.should_not be_empty }
-        Then { all.size.should == 20 }
+        Then { all.size.should == BASIC_DATA_PLAYERS_COUNT * 20 }
         Then { expect(all.map(&:year).all?{|a| a == "2011"}).to be_true }
-        Then { all.count{|a| a.league == leagueAL} == 10 }
-        Then { all.count{|a| a.league == leagueNL} == 10 }
+        Then { all.count{|a| a.league == leagueAL} == BASIC_DATA_PLAYERS_COUNT * 10 }
+        Then { all.count{|a| a.league == leagueNL} == BASIC_DATA_PLAYERS_COUNT * 10 }
         Then { all.map(&:league).should == basic_stats_leagues }
         Then { all.map(&:team).should == basic_stats_teams }
         Then { all.map(&:player).should == basic_stats_players }
@@ -67,9 +60,9 @@ describe BattingStat do
 
         When(:all) { stats.all }
         Then { all.should_not be_empty }
-        Then { all.size.should == 22}
+        Then { all.size.should == BASIC_DATA_PLAYERS_COUNT * 20 + 2 }
         Then { expect(all.map(&:year).all?{|a| a == "2011"}).not_to be_true }
-        Then { all.count{|a| a.year == '2011'} == 20 }
+        Then { all.count{|a| a.year == '2011'} == BASIC_DATA_PLAYERS_COUNT * 20 }
         Then { all.count{|a| a.year == '2012'} == 2 }
         Then { all.map(&:league).should == basic_stats_leagues + [League.first, League.first] }
         Then { all.map(&:team).should == basic_stats_teams + [Team.first, Team.first] }
@@ -86,7 +79,7 @@ describe BattingStat do
     end
     context ".for_league" do
       describe "SQL contains" do
-        Given(:for_league) { BattingStat.for_league(leagueAL.id) }
+        Given(:for_league) { BattingStat.for_league(leagueAL) }
         When (:sql) { for_league.sql }
         Then { expect(sql).to match(/where[ ]*.*league_id.[ ]*=[ ]*.*#{leagueAL.id}/i) }
       end
@@ -99,20 +92,20 @@ describe BattingStat do
           BattingStat.where(year: '2012').delete
         end
         Given(:stats) { BattingStat.default_order }
-        Given(:for_league_stats) { BattingStat.for_league('AL') }
+        Given(:for_league_stats) { BattingStat.for_league(leagueAL) }
         When(:all) { stats.all }
         Then { all.should_not be_empty }
-        Then { all.size.should == 22}
+        Then { all.size.should == BASIC_DATA_PLAYERS_COUNT * 20 +2 }
         Then { expect(all.map(&:league).all?{|a| a == leagueAL}).not_to be_true }
-        Then { all.count{|a| a.league == leagueAL} == 12 }
-        Then { all.count{|a| a.league == leagueNL} == 10 }
+        Then { all.count{|a| a.league == leagueAL} == BASIC_DATA_PLAYERS_COUNT * 10 + 2 }
+        Then { all.count{|a| a.league == leagueNL} == BASIC_DATA_PLAYERS_COUNT * 10 }
         Then { all.map(&:league).should == basic_stats_leagues + [League.first, League.first] }
         Then { all.map(&:team).should == basic_stats_teams + [Team.first, Team.first] }
         Then { all.map(&:player).should ==  basic_stats_players + [Player.first, Player.first] }
 
         When(:for_league_all) { for_league_stats.all }
         Then { for_league_all.should_not be_empty }
-        Then { for_league_all.size.should == 12}
+        Then { for_league_all.size.should == BASIC_DATA_PLAYERS_COUNT * 10 + 2}
         Then { expect(for_league_all.map(&:league).all?{|a| a == leagueAL}).to be_true }
       end
     end
@@ -134,17 +127,17 @@ describe BattingStat do
         Given(:for_team_stats) { BattingStat.for_team(teamNL002) }
         When(:all) { stats.all }
         Then { all.should_not be_empty }
-        Then { all.size.should == 22}
+        Then { all.size.should == BASIC_DATA_PLAYERS_COUNT * 20 + 2 }
         Then { expect(all.map(&:team).all?{|a| a == teamNL002}).not_to be_true }
-        Then { all.count{|a| a.team == teamNL002} == 3 }
-        Then { all.count{|a| a.team != teamNL002} == 19 }
+        Then { all.count{|a| a.team == teamNL002} == BASIC_DATA_PLAYERS_COUNT + 2 }
+        Then { all.count{|a| a.team != teamNL002} == BASIC_DATA_PLAYERS_COUNT * 20 - BASIC_DATA_PLAYERS_COUNT }
         Then { all.map(&:league).should == basic_stats_leagues + [leagueNL, leagueNL] }
         Then { all.map(&:team).should == basic_stats_teams + [teamNL002, teamNL002] }
         Then { all.map(&:player).should ==  basic_stats_players + [Player.first, Player.first] }
 
         When(:for_team_all) { for_team_stats.all }
         Then { for_team_all.should_not be_empty }
-        Then { for_team_all.size.should == 3}
+        Then { for_team_all.size.should == BASIC_DATA_PLAYERS_COUNT + 2 }
         Then { expect(for_team_all.map(&:team).all?{|a| a == teamNL002}).to be_true }
       end
     end
@@ -170,10 +163,10 @@ describe BattingStat do
         Given(:for_player_stats) { BattingStat.for_player(send(player_given_id)) }
         When(:all) { stats.all }
         Then { all.should_not be_empty }
-        Then { all.size.should == 22}
+        Then { all.size.should == BASIC_DATA_PLAYERS_COUNT * 20 + 2}
         Then { expect(all.map(&:player).all?{|a| a == send(player_given_id)}).not_to be_true }
         Then { all.count{|a| a.player == send(player_given_id)} == 3 }
-        Then { all.count{|a| a.player != send(player_given_id)} == 19 }
+        Then { all.count{|a| a.player != send(player_given_id)} == BASIC_DATA_PLAYERS_COUNT * 20 + 2 - 3}
         Then { all.map(&:league).should == basic_stats_leagues + [leagueNL, leagueNL] }
         Then { all.map(&:team).should == basic_stats_teams + [teamNL002, teamNL002] }
         Then { all.map(&:player).should ==  basic_stats_players + [send(player_given_id), send(player_given_id)] }
@@ -270,143 +263,3 @@ describe BattingStat do
     end
   end
 end
-
-=begin
-    context "#at_bats" do
-      Given(:player_given_id) { make_player_given_id(BattingStat.to_s, 'AL', 1) }
-      describe "should handle nil and zero data" do
-        before(:all) do
-          l = League['AL']
-          t = Team['AL005', 'AL']
-          p = Player[make_player_id(BattingStat.to_s, 'AL', 1)]
-          create(:batting_stat, :with_nil_data,  year: '2012', league: l, team: t, player: p)
-          create(:batting_stat, :with_zero_data,  year: '2012', league: l, team: t, player: p)
-          create(:batting_stat, :with_zero_data,  year: '2012', league: l, team: t, player: p, games: 1)
-          create(:batting_stat, :with_zero_data,  year: '2012', league: l, team: t, player: p, games: 2)
-        end
-        after(:all) do
-          BattingStat.where(year: '2012').delete
-        end
-        Given(:stats) { BattingStat.for_player(send(player_given_id)).for_year('2012') }
-        When(:all) { stats.all }
-        Then { all.map(&:at_bats).should == [nil, 0, 20, 240, 50] }
-        context "total on dataset" do
-          When(:total) { stats.total_at_bats  }
-          Then { total == 310 }
-        end
-      end
-    end
-
-    context "#runs" do
-      describe "should handle nil and zero data" do
-        Given(:stats) { BattingStat.for_player(playerP1) }
-        When(:all) { stats.all }
-        Then { all.map(&:runs).should == [nil, 0, 3, 31, 4] }
-        context "total on dataset" do
-          When(:total) { stats.total_runs  }
-          Then { total == 38 }
-        end
-      end
-    end
-
-    context "#hits" do
-      describe "should handle nil and zero data" do
-        Given(:stats) { BattingStat.for_player(playerP1) }
-        When(:all) { stats.all }
-        Then { all.map(&:hits).should == [nil, 0, 6, 56, 16] }
-        context "total on dataset" do
-          When(:total) { stats.total_hits  }
-          Then { total == 78 }
-        end
-      end
-    end
-
-    context "#doubles" do
-      describe "should handle nil and zero data" do
-        Given(:stats) { BattingStat.for_player(playerP1) }
-        When(:all) { stats.all }
-        Then { all.map(&:doubles).should == [nil, 0, 1, 10, 6] }
-        context "total on dataset" do
-          When(:total) { stats.total_doubles  }
-          Then { total == 17 }
-        end
-      end
-    end
-
-    context "#triples" do
-      describe "should handle nil and zero data" do
-        Given(:stats) { BattingStat.for_player(playerP1) }
-        When(:all) { stats.all }
-        Then { all.map(&:triples).should == [nil, 0, 2, 3, 2] }
-        context "total on dataset" do
-          When(:total) { stats.total_triples  }
-          Then { total == 7 }
-        end
-      end
-    end
-
-    context "#home_runs" do
-      describe "should handle nil and zero data" do
-        Given(:stats) { BattingStat.for_player(playerP1) }
-        When(:all) { stats.all }
-        Then { all.map(&:home_runs).should == [nil, 0, 1, 15, 3] }
-        context "total on dataset" do
-          When(:total) { stats.total_home_runs  }
-          Then { total == 19 }
-        end
-      end
-    end
-
-    context "#rbi" do
-      describe "should handle nil and zero data" do
-        Given(:stats) { BattingStat.for_player(playerP1) }
-        When(:all) { stats.all }
-        Then { all.map(&:rbi).should == [nil, 0, 5, 65, 15] }
-        context "total on dataset" do
-          When(:total) { stats.total_rbi  }
-          Then { total == 85 }
-        end
-      end
-    end
-
-    context "#stolen_bases" do
-      describe "should handle nil and zero data" do
-        Given(:stats) { BattingStat.for_player(playerP1) }
-        When(:all) { stats.all }
-        Then { all.map(&:stolen_bases).should == [nil, 0, 3, 13, 5] }
-        context "total on dataset" do
-          When(:total) { stats.total_stolen_bases  }
-          Then { total == 21 }
-        end
-      end
-    end
-
-    context "#caught_stealing" do
-      describe "should handle nil and zero data" do
-        Given(:stats) { BattingStat.for_player(playerP1) }
-        When(:all) { stats.all }
-        Then { all.map(&:caught_stealing).should == [nil, 0, 1, 5, 1] }
-        context "total on dataset" do
-          When(:total) { stats.total_caught_stealing  }
-          Then { total == 7 }
-        end
-      end
-    end
-  end
-  create(:batting_stat, year: '2011', league: al, player: players[0], team: al.teams[2],
-         games: 104, at_bats: 240, runs: 31, hits: 56, doubles: 10, triples: 3, home_runs: 15, rbi: 65, stolen_bases: 13, caught_stealing: 5)
-
-  create(:batting_stat, year: '2011', league: nl, player: players[1], team: nl.teams[1],
-         games: 79, at_bats: 220, runs: 43, hits: 61, doubles: 11, triples: 1, home_runs: 20, rbi: 75, stolen_bases: 10, caught_stealing: 4)
-  create(:batting_stat, year: '2011', league: al, player: players[1], team: al.teams[2],
-         games: 19, at_bats: 50, runs: 4, hits: 16, doubles: 6, triples: 2, home_runs: 3, rbi: 15, stolen_bases: 5, caught_stealing: 1)
-  create(:batting_stat, year: '2012', league: al, player: players[1], team: al.teams[2],
-         games: 55, at_bats: 201, runs: 21, hits: 56, doubles: 8, triples: 0, home_runs: 12, rbi: 55, stolen_bases: 5, caught_stealing: 0)
-
-  create(:batting_stat, year: '2010', league: nl, player: players[2], team: nl.teams[1],
-         games: 45, at_bats: 45, runs: 9, hits: 14, doubles: 3, triples: 0, home_runs: 2, rbi: 15, stolen_bases: 0, caught_stealing: 0)
-  create(:batting_stat, year: '2011', league: nl, player: players[2], team: nl.teams[1],
-         games: 124, at_bats: 399, runs: 54, hits: 131, doubles: 16, triples: 2, home_runs: 30, rbi: 89, stolen_bases: 4, caught_stealing: 1)
-  create(:batting_stat, year: '2012', league: nl, player: players[2], team: nl.teams[1],
-         games: 93, at_bats: 199, runs: 22, hits: 66, doubles: 7, triples: 1, home_runs: 7, rbi: 41, stolen_bases: 6, caught_stealing: 0)
-=end

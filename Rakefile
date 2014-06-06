@@ -59,10 +59,11 @@ begin
   end
 
   task :default => [:spec]
-  spec_with_cov.call("spec", Dir["spec/{commands,models}/*_spec.rb"], "Run command and model specs"){|t| t.rcov_opts}
+  spec_with_cov.call("spec", Dir["spec/{commands,formatters,models}/*_spec.rb"], "Run command and model specs"){|t| t.rcov_opts}
   spec.call("spec_bin", ["spec/bin_spec.rb"], "Run bin/mlb specs")
-  spec.call("spec_command", Dir["spec/commands/*_spec.rb"], "Run command specs")
-  spec.call("spec_model", Dir["spec/models/*_spec.rb"], "Run model specs")
+  spec.call("spec_commands", Dir["spec/commands/*_spec.rb"], "Run command specs")
+  spec.call("spec_formatters", Dir["spec/formatters/*_spec.rb"], "Run formatter specs")
+  spec.call("spec_models", Dir["spec/models/*_spec.rb"], "Run model specs")
 rescue LoadError
   task :default do
     puts "Must install rspec to run the default task (which runs specs)"

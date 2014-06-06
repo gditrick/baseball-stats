@@ -40,12 +40,12 @@ describe MostImprovedHomeRuns do
       context "#total_home_runs" do
         When(:total) { stats.total_home_runs }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
       context "#prev_total_home_runs" do
         When(:total) { stats.prev_total_home_runs }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
       context "#total_home_runs_diff" do
         When(:total) { stats.total_home_runs_diff }
@@ -58,7 +58,7 @@ describe MostImprovedHomeRuns do
       Given(:stats) { MostImprovedHomeRuns.new(stats: BattingStat.for_year('2011'),
                                                prev_stats: BattingStat.for_year('2010'),
                                                restrict: nil) }
-      Given(:most_improved_player) { send(make_player_given_id('', 'AL', 1)) }
+      Given(:most_improved_player) { send(make_player_given_id('', 'AL', (BATTING_STAT_ATTRS.index(:home_runs) * BASIC_DATA_PLAYERS_COUNT + 1))) }
       context "#most_improved" do
         When(:most_improved) { stats.most_improved }
         Then { expect(most_improved).not_to be_nil }
@@ -77,12 +77,12 @@ describe MostImprovedHomeRuns do
       context "#total_home_runs" do
         When(:total) { stats.total_home_runs }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
       context "#prev_total_home_runs" do
         When(:total) { stats.prev_total_home_runs }
         Then { expect(total).not_to be_nil }
-        And { total == 2 }
+        And { total == 12 }
       end
       context "#total_home_runs_diff" do
         When(:total) { stats.total_home_runs_diff }

@@ -1,4 +1,8 @@
 class BattingStatFormatter
+
+  ALLOWED_ORDERS=%i(total_games total_at_bats total_runs total_hits total_doubles total_triples total_home_runs
+                    total_rbi total_stolen_bases total_caught_stealing average slugging)
+
   TAB="\t"
   STATS_HEADER_FORMAT="%4s %5s %4s %4s %3s %3s %3s %4s %4s %3s %5s %5s\n"
   STATS_LINE_FORMAT  ="%4d %5d %4d %4d %3d %3d %3d %4d %4d %3d %5s %5s\n"
@@ -10,27 +14,42 @@ class BattingStatFormatter
   attr_accessor :restrict
 
   def initialize(order, object, stats, options)
-    @order      = order
+    @order      = order.to_sym
     @object     = object
     @stats      = stats
-    @year       = options[:year]
-    @restrict   = options[:restrict] || 0
-    @indent     = options[:indent] || 0
-    @no_headers = options[:no_headers] || false
+    @options    = options
+    @year       = @options[:year]
+    @restrict   = @options[:restrict] || 0
+    @indent     = @options[:indent] || 0
+    @no_headers = @options[:no_headers] || false
     @out        = ""
 
+    raise "Invalid order #{@order} for stats" unless ALLOWED_ORDERS.include?(@order)
 
+    raise "Unknown Batting Stat type to format: #{@object}" unless [League, Team, Player, BattingStat].include?(@object.class) 
+
+    draw
+  end
+
+  def redraw
+    @out = ""
+    draw
+  end
+
+  private
+
+  def draw
     case @object
       when League
         league_header(@object, @stats)
         @out << "\n"
 
         team_stats = @object.teams.map{|a| stats = @stats.dup.where(team: a); stats.calculated_stats=nil; [a, stats]}
-        team_stats.reject!{|a| a[1].empty?}
-        team_stats.sort!{|a,b| b[1].send(@order) <=> a[1].send(@order)}
+        team_stats.reject!{|a| a[1].empty? or a[1].send(@order).nil? }
+        team_stats.sort!{|a,b| [b[1].send(@order), a[0].name] <=> [a[1].send(@order), b[0].name]}
 
         team_stats.each do |team_stat|
-          @out << BattingStatFormatter.new(@order, team_stat[0], team_stat[1], options.merge(indent: @indent + 1)).out
+          @out << BattingStatFormatter.new(@order, team_stat[0], team_stat[1], @options.merge(indent: @indent + 1)).out
           @out << "\n\n"
         end
 
@@ -40,9 +59,9 @@ class BattingStatFormatter
         player_stats = players.map{|a| stats = @stats.dup.where(player: a); stats.calculated_stats=nil; [a, stats]}
         player_stats.reject!{|a| a[1].empty? or a[1].total_at_bats < (@restrict.nil? ? 0 : @restrict) }
         player_stats.sort! do |a,b|
-          a = a[1].send(@order).nil? ? -1.0: a[1].send(@order)
-          b = b[1].send(@order).nil? ? -1.0: b[1].send(@order)
-          b <=> a
+          a_val = a[1].send(@order).nil? ? -1.0: a[1].send(@order)
+          b_val = b[1].send(@order).nil? ? -1.0: b[1].send(@order)
+          [b_val, a[0].name] <=> [a_val, b[0].name]
         end
         @out << "\n"
         player_list_header(1)
@@ -103,15 +122,12 @@ class BattingStatFormatter
           league_stats = @stats.dup.where(league: league)
           league_stats.calculated_stats=nil
           
-          @out << BattingStatFormatter.new(@order, league, league_stats, options.merge(indent: @indent + 1)).out
+          @out << BattingStatFormatter.new(@order, league, league_stats, @options.merge(indent: @indent + 1)).out
           @out << "\n\n\n"
         end
       else
-        raise "Unknown Batting Stat type to format: #{@object}" 
     end
   end
-
-  private
 
   def player_header(player, stats, indent=0)
     indent += @indent
@@ -121,7 +137,7 @@ class BattingStatFormatter
     @out << sprintf("%sBirth Year: %s\n", TAB * indent, player.birth_year) 
     if @year.nil?
       @out << "\n"
-      @out << sprintf("%sCareer Stats\n", TAB * (indent + 1))
+      @out << sprintf("%sCareer Batting\n", TAB * (indent + 1))
       @out << sprintf("%s" + STATS_HEADER_FORMAT, TAB * (indent + 1),
                     'G',
                     'AB',
@@ -150,6 +166,9 @@ class BattingStatFormatter
                       stats.total_caught_stealing,
                       average,
                       slugging)
+    else
+      @out << "\n"
+      @out << sprintf("%s%s Batting\n", TAB * indent, @year)
     end
   end
 
@@ -207,7 +226,7 @@ class BattingStatFormatter
     average  = stats.average.nil? ? "NaN" : sprintf("%.3f",stats.average).gsub(/^0+/, '')
     slugging = stats.slugging.nil? ? "NaN" : sprintf("%.3f",stats.slugging).gsub(/^0+/, '')
     @out << sprintf("%s" + PLAYER_LINE_FORMAT, TAB * indent,
-                    player.name,
+                    "\"" + ("%s" % player.name[0...22]) + "\"",
                     stats.total_games,
                     stats.total_at_bats,
                     stats.total_runs,
